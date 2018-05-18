@@ -1,24 +1,11 @@
 import sys,os,time,csv,getopt,cv2,argparse
 import numpy, ctypes, array
 import numpy as np
-from datetime import datetime
 from ctypes import cdll, c_char_p
 from skimage.transform import resize
 from numpy.ctypeslib import ndpointer
 import ntpath
 import scipy.misc
-from PIL import Image
-
-
-AnnInferenceLib = ctypes.cdll.LoadLibrary('/home/rajy/work/inceptionv4/build/libannmodule.so')
-inf_fun = AnnInferenceLib.annRunInference
-inf_fun.restype = ctypes.c_int
-inf_fun.argtypes = [ctypes.c_void_p,
-                ndpointer(ctypes.c_float, flags="C_CONTIGUOUS"),
-                ctypes.c_size_t,
-                ndpointer(ctypes.c_float, flags="C_CONTIGUOUS"),
-                ctypes.c_size_t]
-hdl = 0
 
 def PreprocessImage(img, dim):
     imgw = img.shape[1]
@@ -40,8 +27,8 @@ def PreprocessImage(img, dim):
     #im = imgb[:,:,(2,1,0)]
     return imgb
 
-def runInference(img):
-    global hdl
+def runInference(img, hdl):
+    #global hdl
     imgw = img.shape[1]
     imgh = img.shape[0]
     #proc_images.append(im)
@@ -52,12 +39,6 @@ def runInference(img):
     inf_fun(hdl, np.ascontiguousarray(img, dtype=np.float32), (img.shape[0]*img.shape[1]*3*4), np.ascontiguousarray(out, dtype=np.float32), len(out_buf))
     return out
 
-def predict_fn(images):
-    results = np.zeros(shape=(len(images), 1000))
-    for i in range(len(images)):
-        results[i] = runInference(images[i])    
-    return results
-
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -65,25 +46,33 @@ if __name__ == '__main__':
                         default='./images/dog.jpg', help='An image path.')
     parser.add_argument('--video', dest='video', type=str,
                         default='./videos/car.avi', help='A video path.')
-    parser.add_argument('--imagefolder', dest='imagefolder', type=str,
-                        default='./', help='A directory with images.')
-    parser.add_argument('--resultsfolder', dest='resultfolder', type=str,
-                        default='./', help='A directory with images.')
+    parser.add_argument('--annpythonlib', dest='pythonlib', type=str,
+                        default='/home/rajy/work/inceptionv4/build/libannmodule.so', help='pythonlib')
+    parser.add_argument('--datafolder', dest='data_folder', type=str,
+                        default='/home/rajy/work/inceptionv4', help='A directory with weights.')    
     parser.add_argument('--labels', dest='labelfile', type=str,
                         default='./labels.txt', help='file with labels')
     args = parser.parse_args()
 
     imagefile = args.image
     videofile = args.video
-    imagedir  = args.imagefolder
-    outputdir = args.resultfolder
+    #weightsfile = args.weightsfile
+    annpythonlib = args.pythonlib
+    data_folder = args.data_folder
+
     synsetfile = args.labelfile
-    images = []
-    proc_images = []
+    #AnnInferenceLib = ctypes.cdll.LoadLibrary('/home/rajy/work/inceptionv4/build/libannmodule.so')
+    AnnInferenceLib = ctypes.cdll.LoadLibrary(annpythonlib)
+    inf_fun = AnnInferenceLib.annRunInference
+    inf_fun.restype = ctypes.c_int
+    inf_fun.argtypes = [ctypes.c_void_p,
+                    ndpointer(ctypes.c_float, flags="C_CONTIGUOUS"),
+                    ctypes.c_size_t,
+                    ndpointer(ctypes.c_float, flags="C_CONTIGUOUS"),
+                    ctypes.c_size_t]
     AnnInferenceLib.annCreateContext.argtype = [ctypes.c_char_p]
-    data_folder = "/home/rajy/work/inceptionv4"
+    #data_folder = "/home/rajy/work/inceptionv4"
     b_data_folder = data_folder.encode('utf-8')
-    global hdl
     hdl = AnnInferenceLib.annCreateContext(b_data_folder)
     inp_dim = (299, 299)
     #read synset names
@@ -100,15 +89,15 @@ if __name__ == '__main__':
         img = cv2.imread(imagefile)
         imgb = PreprocessImage(img, inp_dim)
         start = datetime.now()
-        output = runInference(imgb)
+        output = runInference(imgb, hdl)
         f = open('out_file.f32', 'wb')
         f.write(output.tobytes())
         f.close()        
         for x in output.argsort()[-3:]:
-            print (x, names[x], output[x])
             top_indeces.append(x)
             top_labels.append(names[x])
 
+        print (top_indeces[0], top_labels[0])
         txt =  top_labels[2]   
         size = cv2.getTextSize(top_labels[2], cv2.FONT_HERSHEY_COMPLEX_SMALL, 1.1, 2)
         t_width = size[0][0]
@@ -135,19 +124,21 @@ if __name__ == '__main__':
             top_labels = []
             ret, frame = cap.read()
             if ret:
+                frame = cv2.flip(frame, 1)
                 imgb = PreprocessImage(frame, inp_dim)
-                output = runInference(imgb)
+                output = runInference(imgb, hdl)
                 for x in output.argsort()[-3:]:
-                    print (x, names[x], output[x])
+                    #print (x, names[x], output[x])
                     top_indeces.append(x)
                     top_labels.append(names[x])
                 #draw a rectangle on the image at top    
+                print (top_labels[2], top_indeces[2])
                 txt =  top_labels[2].lstrip(top_labels[2].split(' ')[0])   
                 size = cv2.getTextSize(top_labels[2], cv2.FONT_HERSHEY_COMPLEX_SMALL, 1.1, 2)
                 t_width = size[0][0]
                 t_height = size[0][1]
-                cv2.rectangle(frame, (10, 10), (t_width+10,t_height+10), (192,192,128), -1)
-                cv2.putText(frame,txt,(10,t_height+5),cv2.FONT_HERSHEY_COMPLEX_SMALL,1.1,(20,20,20),2)
+                cv2.rectangle(frame, (10, 10), (t_width+10,t_height+18), (192,192,128), -1)
+                cv2.putText(frame,txt,(10,t_height+10),cv2.FONT_HERSHEY_COMPLEX_SMALL,1.1,(20,20,20),2)
                 cv2.imshow('AMD InceptionV4 Live', frame)
                 key = cv2.waitKey(1)
                 if key & 0xFF == ord('q'):
