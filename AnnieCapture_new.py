@@ -101,7 +101,6 @@ if __name__ == '__main__':
     api = AnnAPI(annpythonlib)
     input_info,output_info = api.annQueryInference().decode("utf-8").split(';')
     input,name,ni,ci,hi,wi = input_info.split(',')
-    print name,ni,ci,hi,wi
     hdl = api.annCreateInference(weightsfile)
     inp_dim = (299, 299)
     #read synset names
@@ -151,21 +150,23 @@ if __name__ == '__main__':
             top_labels = []
             ret, frame = cap.read()
             if ret:
+                frame = cv2.flip(frame, 1)                
                 imgb = PreprocessImage(frame, inp_dim)
                 #output = runInference(imgb)
                 output = runInference(imgb, api, hdl)
                 for x in output.argsort()[-3:]:
-                    print (x, names[x], output[x])
+                    #print (x, names[x], output[x])
                     top_indeces.append(x)
                     top_labels.append(names[x])
                 #draw a rectangle on the image at top    
+                print (top_labels[2], top_indeces[2])
                 txt =  top_labels[2].lstrip(top_labels[2].split(' ')[0])   
                 size = cv2.getTextSize(top_labels[2], cv2.FONT_HERSHEY_COMPLEX_SMALL, 1.1, 2)
                 t_width = size[0][0]
                 t_height = size[0][1]
-                cv2.rectangle(frame, (10, 10), (t_width+10,t_height+10), (192,192,128), -1)
-                cv2.putText(frame,txt,(10,t_height+5),cv2.FONT_HERSHEY_COMPLEX_SMALL,1.1,(20,20,20),2)
-                cv2.imshow('Demo', frame)
+                cv2.rectangle(frame, (10, 10), (t_width+10,t_height+18), (192,192,128), -1)
+                cv2.putText(frame,txt,(10,t_height+10),cv2.FONT_HERSHEY_COMPLEX_SMALL,1.1,(20,20,20),2)
+                cv2.imshow('AMD InceptionV4 Live', frame)
                 key = cv2.waitKey(1)
                 if key & 0xFF == ord('q'):
                     break
