@@ -56,12 +56,15 @@ def PreprocessImage(img, dim):
 def runInference(img, api, hdl):
     imgw = img.shape[1]
     imgh = img.shape[0]
-    #proc_images.append(im)
     out_buf = bytearray(1000*4)
-    #out_buf = memoryview(out_buf)
     out = np.frombuffer(out_buf, dtype=numpy.float32)
-    #im = im.astype(np.float32)
-    status = api.annCopyToInferenceInput(hdl, np.ascontiguousarray(img, dtype=np.float32), (img.shape[0]*img.shape[1]*3*4), 0)
+    #convert image to tensor format (RGB in seperate planes)
+    img_r = img[:,:,0]
+    img_g = img[:,:,1]
+    img_b = img[:,:,2]
+    img_t = np.concatenate((img_r, img_g, img_b), 0)
+
+    status = api.annCopyToInferenceInput(hdl, np.ascontiguousarray(img_t, dtype=np.float32), (img.shape[0]*img.shape[1]*3*4), 0)
     print('INFO: annCopyToInferenceInput status %d'  %(status))
     status = api.annRunInference(hdl, 1)
     print('INFO: annRunInference status %d ' %(status))
