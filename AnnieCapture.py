@@ -33,7 +33,7 @@ class AnnAPI:
         self.annRunInference.argtypes = [ctypes.c_void_p, ctypes.c_int]
         print('OK: AnnAPI found "' + self.annQueryInference().decode("utf-8") + '" as configuration in ' + library)
 
-def PreprocessImage(img, dim):
+def PreprocessImage(img, dim, pmul, padd):
     imgw = img.shape[1]
     imgh = img.shape[0]
     imgb = np.empty((dim[0], dim[1], 3))    #for inception v4
@@ -46,9 +46,9 @@ def PreprocessImage(img, dim):
         neww = dim[0]
     offx = int((dim[0] - neww)/2)
     offy = int((dim[1] - newh)/2)
-    imgc = img.copy()*(2.0/255.0) - 1.0
+    #imgc = img.copy()*(2.0/255.0) - 1.0
+    imgc = img.copy()*pmul + padd
 
-    #print('INFO:: imw: %d imh: %d dim0: %d dim1:%d newW:%d newH:%d offx:%d offy: %d' % (imgw, imgh, dim[0], dim[1], neww, newh, offx, offy))
     imgb[offy:offy+newh,offx:offx+neww,:] = resize(imgc,(newh,neww),1.0)
     #im = imgb[:,:,(2,1,0)]
     return imgb
@@ -78,16 +78,12 @@ def predict_fn(images):
         results[i] = runInference(images[i])    
     return results
 
-def getKey(item):
-    return item[1]  
-
-
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--image', dest='image', type=str,
                         default='./images/dog.jpg', help='An image path.')
-    parser.add_argument('--capture', dest='capmode', type=int,
-                        default=0, help='Display Mode.')
+    parser.add_argument('--capture', dest='capmode', type=str,
+                        default=0, help='CaptureMode, preprocessMul, preprocessAdd.')
     parser.add_argument('--annpythonlib', dest='pyhtonlib', type=str,
                         default='./libannpython.so', help='pythonlib')
     parser.add_argument('--weights', dest='weightsfile', type=str,
@@ -103,12 +99,13 @@ if __name__ == '__main__':
     weightsfile = args.weightsfile
     annpythonlib = args.pyhtonlib
     hierarchyfile = args.hierarchyfile
-    Mode = args.capmode;
+    M, pm, pa = args.capmode.split(',')
+    Mode, pmul, padd = int(M),float(pm),int(pa)
     api = AnnAPI(annpythonlib)
     input_info,output_info = api.annQueryInference().decode("utf-8").split(';')
     input,name,ni,ci,hi,wi = input_info.split(',')
     hdl = api.annCreateInference(weightsfile)
-    inp_dim = (299, 299)
+    inp_dim = (int(wi), int(hi))
     #read synset names
     if synsetfile:
         fp = open(synsetfile, 'r')
@@ -128,7 +125,7 @@ if __name__ == '__main__':
         top_indeces = []
         top_labels = []
         img = cv2.imread(imagefile)
-        imgb = PreprocessImage(img, inp_dim)
+        imgb = PreprocessImage(img, inp_dim, pmul, padd)
         start = datetime.now()
         output = runInference(imgb, api, hdl)
         for x in output.argsort()[-3:]:
@@ -162,16 +159,13 @@ if __name__ == '__main__':
             ret, frame = cap.read()
             if ret:
                 frame = cv2.flip(frame, 1)                
-                imgb = PreprocessImage(frame, inp_dim)
-                #output = runInference(imgb)
+                imgb = PreprocessImage(frame, inp_dim, pmul, padd)
                 output = runInference(imgb, api, hdl)
                 for x in output.argsort()[-3:]:
                     top_indeces.append(x)
                     top_labels.append(names[x])
                     top_prob.append(output[x])
                     top_hei.append(hierarchies[x])
-                    #print (x, names[x], output[x])
-                #print (top_labels[2], top_indeces[2])
                 if Mode == 0:
                     #draw a rectangle on the image at top    
                     txt =  top_labels[2].lstrip(top_labels[2].split(' ')[0])   
