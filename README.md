@@ -43,3 +43,18 @@ python AnnieCapture.py --imagefolder <input image directory> --pm 1 --pa 0 --ann
 
 python AnnieCapture.py --image <input image file> --pm 1 --pa 0 --annpythonlib <annpythonlib> --weights <weights.bin> --labels labelfile.txt --hierarchy <hierarchyfile>
 ```
+## Key Press Options when in capture mode:
+Press these different keys to switch between modes (uses openCV)
+1. **Keys '1' through 'n'** - Runs through a folder corresponding to number once and goes back to live mode (currently supports keys 1,2 folders)
+
+2. **Key 'f'** - Runs through a folder until asked to change
+
+3. **Key 'q'** - Quits from the program
+
+4. **Key 'Space Bar'** - pauses the capture until space bar pressed again
+
+## Key Press Options when in imagefolder mode:
+Press these different keys to switch between modes (uses openCV)
+ 1. **Key 'c'** - Switches to camera capture mode until asked to change
+ 
+ 2. **Key 'q'** - Quits from the program
