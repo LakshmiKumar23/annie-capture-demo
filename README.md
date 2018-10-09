@@ -58,3 +58,5 @@ Press these different keys to switch between modes (uses openCV)
  1. **Key 'c'** - Switches to camera capture mode until asked to change
  
  2. **Key 'q'** - Quits from the program
+ 
+ 3. **Key 'Space Bar'** - pauses the capture until space bar pressed again
