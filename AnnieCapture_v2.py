@@ -126,8 +126,8 @@ class App(QWidget):
         self.show()
 
         self.tableWidget.setRowCount(0)
-        self.tableWidget.setColumnCount(6)
-        self.tableWidget.setHorizontalHeaderLabels(['Name_Top_1', 'Confidence_Top_1', 'Name_Top_2', 'Confidence_Top_2', 'Name_Top_3', 'Confidence_Top_3'])
+        self.tableWidget.setColumnCount(9)
+        self.tableWidget.setHorizontalHeaderLabels(['Top 1', 'Confidence', '','Top 2', 'Confidence', '','Top 3', 'Confidence',''])
         for row_number in xrange(0,min(5,len(data))): 
             name_1 = str(data[row_number][1]).split(" ",1)
             name_2 = str(data[row_number][4]).split(" ",1)
@@ -135,16 +135,19 @@ class App(QWidget):
             conf_1 = str(int(round(float(data[row_number][2]), 2)*100)) + "%"
             conf_2 = str(int(round(float(data[row_number][5]), 2)*100)) + "%"
             conf_3 = str(int(round(float(data[row_number][8]), 2)*100)) + "%"
-            #print data[row_number]
             row_number =  self.tableWidget.rowCount()
             self.tableWidget.insertRow(row_number)
             self.tableWidget.setItem(row_number, 0, QTableWidgetItem(name_1[1]))
             self.tableWidget.setItem(row_number, 1, QTableWidgetItem(conf_1))
-            self.tableWidget.setItem(row_number, 2, QTableWidgetItem(name_2[1]))
-            self.tableWidget.setItem(row_number, 3, QTableWidgetItem(conf_2))
-            self.tableWidget.setItem(row_number, 4, QTableWidgetItem(name_3[1]))
-            self.tableWidget.setItem(row_number, 5, QTableWidgetItem(conf_3))
+            self.tableWidget.setItem(row_number, 3, QTableWidgetItem(name_2[1]))
+            self.tableWidget.setItem(row_number, 4, QTableWidgetItem(conf_2)) 
+            self.tableWidget.setItem(row_number, 6, QTableWidgetItem(name_3[1]))
+            self.tableWidget.setItem(row_number, 7, QTableWidgetItem(conf_3))
         self.tableWidget.resizeColumnsToContents()
+        self.tableWidget.setColumnWidth(2,3)
+        self.tableWidget.setColumnWidth(5,3)
+        self.tableWidget.setColumnWidth(8,3)
+        
         
         # Show widget
         self.show()
