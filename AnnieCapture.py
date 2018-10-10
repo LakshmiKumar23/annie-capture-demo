@@ -153,14 +153,6 @@ class App(QWidget):
 		self.show()
 
 
-def check_image_with_pil(path):
-	try:
-		Image.open(path)
-		return True
-	except:
-		return
-
-
 def image_function():
 	imagefile = args.image
 	# image preprocess
