@@ -122,12 +122,12 @@ class App(QWidget):
 		self.setGeometry(0, 0, 1200, 300)
 
 	def createTable(self,data):
-		
+		prev = data
 		self.show()
 
 		self.tableWidget.setRowCount(0)
-		self.tableWidget.setColumnCount(9)
-		self.tableWidget.setHorizontalHeaderLabels(['Top 1', 'Confidence', '','Top 2', 'Confidence', '','Top 3', 'Confidence',''])
+		self.tableWidget.setColumnCount(10)
+		self.tableWidget.setHorizontalHeaderLabels(['Occurence','Top 1', 'Confidence', '','Top 2', 'Confidence', '','Top 3', 'Confidence',''])
 		for row_number in xrange(0,min(5,len(data))): 
 			name_1 = str(data[row_number][1]).split(" ",1)
 			name_2 = str(data[row_number][4]).split(" ",1)
@@ -135,22 +135,36 @@ class App(QWidget):
 			conf_1 = str(int(round(float(data[row_number][2]), 2)*100)) + "%"
 			conf_2 = str(int(round(float(data[row_number][5]), 2)*100)) + "%"
 			conf_3 = str(int(round(float(data[row_number][8]), 2)*100)) + "%"
+			
 			row_number =  self.tableWidget.rowCount()
 			self.tableWidget.insertRow(row_number)
-			self.tableWidget.setItem(row_number, 0, QTableWidgetItem(name_1[1]))
-			self.tableWidget.setItem(row_number, 1, QTableWidgetItem(conf_1))
-			self.tableWidget.setItem(row_number, 3, QTableWidgetItem(name_2[1]))
-			self.tableWidget.setItem(row_number, 4, QTableWidgetItem(conf_2)) 
-			self.tableWidget.setItem(row_number, 6, QTableWidgetItem(name_3[1]))
-			self.tableWidget.setItem(row_number, 7, QTableWidgetItem(conf_3))
+			self.tableWidget.setItem(row_number, 1, QTableWidgetItem(name_1[1]))
+			#self.tableWidget.item(row_number,1).setBackground(QColor('#388E8E'))
+			self.tableWidget.setItem(row_number, 2, QTableWidgetItem(conf_1))
+			self.tableWidget.setItem(row_number, 4, QTableWidgetItem(name_2[1]))
+			self.tableWidget.setItem(row_number, 5, QTableWidgetItem(conf_2)) 
+			self.tableWidget.setItem(row_number, 7, QTableWidgetItem(name_3[1]))
+			self.tableWidget.setItem(row_number, 8, QTableWidgetItem(conf_3))
+		self.tableWidget.setAlternatingRowColors(True)
+		self.tableWidget.setItem(0,0,QTableWidgetItem("Most Recent"))
+		self.tableWidget.setItem(2,0,QTableWidgetItem("Older"))
+		self.tableWidget.setItem(4,0,QTableWidgetItem("Oldest"))		
 		self.tableWidget.resizeColumnsToContents()
-		self.tableWidget.setColumnWidth(2,3)
-		self.tableWidget.setColumnWidth(5,3)
-		self.tableWidget.setColumnWidth(8,3)
+		self.tableWidget.setColumnWidth(3,3)
+		self.tableWidget.setColumnWidth(6,3)
+		self.tableWidget.setColumnWidth(9,3)
 		
 		
 		# Show widget
 		self.show()
+
+
+def check_image_with_pil(path):
+	try:
+		Image.open(path)
+		return True
+	except:
+		return
 
 
 def image_function():
@@ -242,6 +256,7 @@ def camera_function(capmode):
 	assert cap.isOpened(), 'Cannot capture source'    
 	frames = 0
 	start = time.time()
+	data = []
 	dictnames = ['class_top1', 'class_name_top1', 'confidence_top1', 'class_top2', 'class_name_top2', 'confidence_top2', 'class_top3', 'class_name_top3', 'confidence_top3']
 	with open('history_file.csv', 'w+') as csvHistoryFile:
 		writer = csv.DictWriter(csvHistoryFile, fieldnames=dictnames)
@@ -304,11 +319,16 @@ def camera_function(capmode):
 					if numElements > 0: 
 						
 						for i in xrange(len(resultDataBase) - 1, 0 , -1):
-							if resultDataBase[i][0] == resultDataBase[i-1][0]: #and resultDataBase[i][3] == resultDataBase[i-1][3] and resultDataBase[i][6] == resultDataBase[i-1][6]:
+							if resultDataBase[i][0] == resultDataBase[i-1][0]: 
 								del resultDataBase[i]
 						
-						qt_tryme.createTable(resultDataBase)
-
+						data.insert(0,resultDataBase[0])
+						for i in xrange(len(data) - 1, 0 , -1):
+							if data[i][0] == data[i-1][0]: 
+								del data[i]
+						
+						qt_tryme.createTable(data)
+						#time.sleep(0.2)
 						csvHistoryFile.seek(0)
 						writer = csv.DictWriter(csvHistoryFile, fieldnames=dictnames)
 						writer.writeheader()
