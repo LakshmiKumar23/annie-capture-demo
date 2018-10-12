@@ -122,7 +122,6 @@ class App(QWidget):
 		self.setGeometry(0, 0, 1200, 300)
 
 	def createTable(self,data):
-		prev = data
 		self.show()
 
 		self.tableWidget.setRowCount(0)
@@ -158,14 +157,25 @@ class App(QWidget):
 		# Show widget
 		self.show()
 
+def show_legend():
+	keys = ['key','1', '2', 'f', 'q' ,'Space Bar', 'c']
+	modes = ['mode','folder 1 - one iteration' , 'folder 2 - one iteration' , 'folder - always', 'quit','pause/play', 'camera mode']
+	fontScale = 1
+	thickness = 1
+	legendGeometry = (300,500)
+	legend = np.zeros(legendGeometry, dtype=np.uint8)
+	
+	for i in xrange(len(keys)):
+		size = cv2.getTextSize(keys[i], cv2.FONT_HERSHEY_COMPLEX_SMALL, 0.5, 1)
+		width = size[0][0]
+		height = size[0][1]
 
-def check_image_with_pil(path):
-	try:
-		Image.open(path)
-		return True
-	except:
-		return
-
+		#cv2.rectangle(legend, (5, (i * 25) + 17),(300, (i * 25) + 25),(160,82,45),-1)	
+		cv2.putText(legend, keys[i], (5, ((i+2)*25)), cv2.FONT_HERSHEY_COMPLEX_SMALL, fontScale, (255,255,255), thickness,2 )
+		cv2.putText(legend, modes[i], (150, (i+2) * 25), cv2.FONT_HERSHEY_COMPLEX_SMALL, fontScale, (255,255,255), thickness,2 )
+		#cv2.rectangle(legend, (5, (i * 25) + 17),(300, (i * 25) + 25),(0,0,255),-1)
+	
+	cv2.imshow("Class Legend", legend) 	 	
 
 def image_function():
 	imagefile = args.image
@@ -195,6 +205,7 @@ def image_function():
 	exit()
 
 def imagefolder_function(imagedir, outputdir):
+	show_legend()
 	count = 0  
 	# image preprocess
 	start = datetime.now()
@@ -251,6 +262,8 @@ def imagefolder_function(imagedir, outputdir):
 
 
 def camera_function(capmode):
+
+	show_legend()
 	print ('Capturing Live')
 	cap = cv2.VideoCapture(0)
 	assert cap.isOpened(), 'Cannot capture source'    
@@ -345,7 +358,7 @@ def camera_function(capmode):
 						continue
 
 				if key & 0xFF == ord('1'):
-					cap.release()
+					#cap.release()
 					imagedir  = os.getcwd() + '/images/'
 					outputdir = os.getcwd() + '/outputFolder_1/'
 					if not os.path.exists(outputdir):
@@ -353,7 +366,7 @@ def camera_function(capmode):
 					imagefolder_function(imagedir, outputdir)
 			   
 				if key & 0xFF == ord('2'):
-					cap.release()
+					#cap.release()
 					imagedir  = os.getcwd() + '/images_2/'
 					outputdir = os.getcwd() + '/outputFolder_2/'
 					if not os.path.exists(outputdir):
@@ -375,6 +388,10 @@ def camera_function(capmode):
 
 		api.annReleaseInference(hdl)
 		exit()
+
+
+
+
 
 if __name__ == '__main__':
 	parser = argparse.ArgumentParser()
@@ -443,7 +460,6 @@ if __name__ == '__main__':
 			os.makedirs(outputdir);      
 		imagefolder = args.folder
 		imagefolder_function(imagefolder, outputdir)
-
 		
 
 	elif sys.argv[1] == '--capture':
