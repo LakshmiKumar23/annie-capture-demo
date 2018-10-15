@@ -95,7 +95,7 @@ class App(QWidget):
 
 	def initUI(self):
 
-		self.title = 'IMAGE CLASSIFICATION'
+		self.title = 'MIVision IMAGE CLASSIFICATION'
 		self.setWindowTitle(self.title)
 		cwd = os.getcwd() 
 		self.setWindowIcon(QIcon(cwd + '/icons/amd-logo-150x150.jpg'))
@@ -175,7 +175,7 @@ def show_legend():
 		cv2.putText(legend, modes[i], (150, (i+2) * 25), cv2.FONT_HERSHEY_COMPLEX_SMALL, fontScale, (255,255,255), thickness,2 )
 		#cv2.rectangle(legend, (5, (i * 25) + 17),(300, (i * 25) + 25),(0,0,255),-1)
 	
-	cv2.imshow("Class Legend", legend) 	 	
+	cv2.imshow("MIVision Classification Legend", legend) 	 	
 
 def image_function():
 	imagefile = args.image
@@ -197,7 +197,7 @@ def image_function():
 	t_height = size[0][1]
 	cv2.rectangle(img, (50, 50), (t_width+50,t_height+50), (192,192,128), -1)
 	cv2.putText(img,txt,(2,52),cv2.FONT_HERSHEY_COMPLEX_SMALL,1.1,(20,20,20),2)
-	cv2.imshow('AMD Classification Live', img)
+	cv2.imshow('MIVision Classification Live', img)
 	key = cv2.waitKey()
 	#cv2.destroyAllWindows()
 	#AnnInferenceLib.annReleaseContext(ctypes.c_void_p(hdl))
@@ -240,8 +240,8 @@ def imagefolder_function(imagedir, outputdir):
 			cv2.putText(img,txt,(2,52),cv2.FONT_HERSHEY_COMPLEX_SMALL,0.8,(20,20,20),2)
 
 			path = os.path.join(outputdir ,  'classification-output_'+ str(count) + '.jpg')
-			cv2.imshow('AMD Classification Live', img)
-			time.sleep(0.6)
+			cv2.imshow('MIVision Classification Live', img)
+			time.sleep(0.8)
 			cv2.imwrite(path,img)
 			count += 1
 			key = cv2.waitKey(1)
@@ -249,6 +249,7 @@ def imagefolder_function(imagedir, outputdir):
 				api.annReleaseInference(hdl)
 				exit()
 			if key & 0xFF == ord('c'):
+				#cap = cv2.VideoCapture(0)
 				camera_function(0)
 			if key == 32:
 				if cv2.waitKey(0) == 32:
@@ -298,7 +299,7 @@ def camera_function(capmode):
 					t_height = size[0][1]
 					cv2.rectangle(frame, (10, 10), (t_width+2,t_height+16), (192,192,128), -1)
 					cv2.putText(frame,txt,(10,t_height+10),cv2.FONT_HERSHEY_DUPLEX,0.7,(20,20,20),2)
-					cv2.imshow('AMD Classification Live', frame)
+					cv2.imshow('MIVision Classification Live', frame)
 				
 				elif int(capmode) == 1:
 					#print ("in capmode 1")
@@ -311,7 +312,7 @@ def camera_function(capmode):
 					cv2.rectangle(frame, (10, 10), (t_width+10,t_height1+16), (192,192,128), -1)
 					cv2.putText(frame,txt,(10,t_height+10),cv2.FONT_HERSHEY_DUPLEX,0.7,(20,20,20),2)
 					cv2.putText(frame,txt1,(10,t_height1+10),cv2.FONT_HERSHEY_DUPLEX,0.7,(20,20,20),2)
-					cv2.imshow('AMD Classification Live', frame)
+					cv2.imshow('MIVision Classification Live', frame)
 				
 				writer.writerow({'class_top1':top_indeces[2], 'class_name_top1':top_labels[2], 'confidence_top1': top_prob[2],\
 							'class_top2':top_indeces[1], 'class_name_top2':top_labels[1], 'confidence_top2': top_prob[1],\
@@ -358,21 +359,23 @@ def camera_function(capmode):
 						continue
 
 				if key & 0xFF == ord('1'):
-					#cap.release()
+					cap.release()
 					imagedir  = os.getcwd() + '/images/'
 					outputdir = os.getcwd() + '/outputFolder_1/'
 					if not os.path.exists(outputdir):
 						os.makedirs(outputdir)
 					imagefolder_function(imagedir, outputdir)
-			   
+			   		cap = cv2.VideoCapture(0)
+
 				if key & 0xFF == ord('2'):
-					#cap.release()
+					cap.release()
 					imagedir  = os.getcwd() + '/images_2/'
 					outputdir = os.getcwd() + '/outputFolder_2/'
 					if not os.path.exists(outputdir):
 						os.makedirs(outputdir)
 					imagefolder_function(imagedir, outputdir)
-				
+					cap = cv2.VideoCapture(0)
+
 				if key & 0xFF == ord('f'):
 					cap.release()
 					imagedir  = os.getcwd() + '/images/'
