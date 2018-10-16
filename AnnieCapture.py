@@ -233,7 +233,7 @@ def imagefolder_function(imagedir, outputdir):
 			txt1 =  top_labels[2].split(' ',1)
 			txt = txt1[1]
 			#print txt 
-			size = cv2.getTextSize(top_labels[2], cv2.FONT_HERSHEY_COMPLEX_SMALL, 1.1, 2)
+			size = cv2.getTextSize(txt, cv2.FONT_HERSHEY_COMPLEX_SMALL, 1.1, 2)
 			t_width = size[0][0]
 			t_height = size[0][1]
 			cv2.rectangle(img, (5, 20), (t_width+50,t_height+50), (192,192,128), -1)
@@ -242,6 +242,7 @@ def imagefolder_function(imagedir, outputdir):
 			path = os.path.join(outputdir ,  'classification-output_'+ str(count) + '.jpg')
 			cv2.imshow('MIVision Classification Live', img)
 			time.sleep(0.8)
+			#cv2.waitKey(1000)
 			cv2.imwrite(path,img)
 			count += 1
 			key = cv2.waitKey(1)
@@ -294,7 +295,7 @@ def camera_function(capmode):
 				if int(capmode) == 0:
 					#draw a rectangle on the image at top    
 					txt =  top_labels[2].lstrip(top_labels[2].split(' ')[0])   
-					size = cv2.getTextSize(top_labels[2], cv2.FONT_HERSHEY_DUPLEX, 0.7, 2)
+					size = cv2.getTextSize(txt, cv2.FONT_HERSHEY_DUPLEX, 0.7, 2)
 					t_width = size[0][0]
 					t_height = size[0][1]
 					cv2.rectangle(frame, (10, 10), (t_width+2,t_height+16), (192,192,128), -1)
