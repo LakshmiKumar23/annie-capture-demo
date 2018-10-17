@@ -1,5 +1,5 @@
 """
-AnnieCapture + history and top N
+Demo:Classification Live Capture and folder modes
 """
 
 import sys,os,time,csv,getopt,cv2,argparse
